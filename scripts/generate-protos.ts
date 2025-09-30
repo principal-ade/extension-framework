@@ -1,12 +1,18 @@
-import { exec } from 'child_process';
+import { execSync } from 'child_process';
 import { glob } from 'glob';
 import { mkdirSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
+import { join } from 'path';
 
 const PROTO_DIR = join(__dirname, '../src/proto');
 const GENERATED_DIR = join(__dirname, '../src/generated');
-const PROTOC_GEN_TS_PATH = join(__dirname, '../node_modules/.bin/protoc-gen-ts');
-const GRPC_TOOLS_NODE_PROTOC = join(__dirname, '../node_modules/.bin/grpc_tools_node_protoc');
+const GRPC_TOOLS_NODE_PROTOC = join(
+  __dirname,
+  '../node_modules/.bin/grpc_tools_node_protoc'
+);
+const PROTO_LOADER_GEN_TYPES = join(
+  __dirname,
+  '../node_modules/.bin/proto-loader-gen-types'
+);
 
 // Create the generated directory if it doesn't exist
 if (!existsSync(GENERATED_DIR)) {
@@ -21,29 +27,45 @@ if (protoFiles.length === 0) {
   process.exit(0);
 }
 
-const command = [
+const protocCommand = [
   GRPC_TOOLS_NODE_PROTOC,
-  `--plugin=protoc-gen-ts=${PROTOC_GEN_TS_PATH}`,
   `--js_out=import_style=commonjs,binary:${GENERATED_DIR}`,
-  `--ts_out=service=grpc-js:${GENERATED_DIR}`,
   `--grpc_out=grpc_js:${GENERATED_DIR}`,
   `-I ${PROTO_DIR}`,
   ...protoFiles,
 ].join(' ');
 
-console.log(`Running command: ${command}`);
+console.log(`Running command: ${protocCommand}`);
 
-exec(command, (error, stdout, stderr) => {
-  if (error) {
-    console.error(`Error generating protos: ${error.message}`);
-    console.error(stderr);
-    process.exit(1);
+try {
+  execSync(protocCommand);
+  console.log('Successfully generated JavaScript protobuf and gRPC files.');
+} catch (e) {
+  if (e instanceof Error) {
+    console.error(`Error generating JavaScript protos: ${e.message}`);
+  } else {
+    console.error('An unknown error occurred during JS proto generation.');
   }
+  process.exit(1);
+}
 
-  if (stderr) {
-    console.warn(`protoc stderr: ${stderr}`);
+const tsCommand = [
+  PROTO_LOADER_GEN_TYPES,
+  '--grpcLib=@grpc/grpc-js',
+  `--outDir=${GENERATED_DIR}`,
+  ...protoFiles,
+].join(' ');
+
+console.log(`Running command: ${tsCommand}`);
+
+try {
+  execSync(tsCommand);
+  console.log('Successfully generated TypeScript definition files.');
+} catch (e) {
+  if (e instanceof Error) {
+    console.error(`Error generating TypeScript definitions: ${e.message}`);
+  } else {
+    console.error('An unknown error occurred during TS definition generation.');
   }
-
-  console.log('Successfully generated protobuf and gRPC files.');
-  console.log(stdout);
-});
+  process.exit(1);
+}
