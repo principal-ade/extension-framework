@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package host;
+
+import "google/protobuf/empty.proto";
+
+message ShowMessageRequest {
+    enum MessageType {
+        INFO = 0;
+        WARNING = 1;
+        ERROR = 2;
+    }
+    MessageType type = 1;
+    string message = 2;
+}
+
+message ShowInputBoxRequest {
+    string prompt = 1;
+    string placeholder = 2;
+    string default_value = 3;
+}
+
+message ShowInputBoxResponse {
+    string value = 1;
+}
+
+message ShowOpenDialogRequest {
+    bool can_select_files = 1;
+    bool can_select_folders = 2;
+    bool can_select_many = 3;
+    string default_uri = 4;
+}
+
+message ShowOpenDialogResponse {
+    repeated string selected_uris = 1;
+}
+
+message ShowSaveDialogRequest {
+    string default_uri = 1;
+}
+
+message ShowSaveDialogResponse {
+    string saved_uri = 1;
+}
+
+message OpenFileRequest {
+    string file_uri = 1;
+}
+
+message Tab {
+    string id = 1;
+    string label = 2;
+    bool is_active = 3;
+    bool is_visible = 4;
+}
+
+message GetTabsResponse {
+    repeated Tab tabs = 1;
+}
+
+message Editor {
+    string file_uri = 1;
+}
+
+message GetActiveEditorResponse {
+    optional Editor editor = 1;
+}
+
+service WindowService {
+    rpc showMessage(ShowMessageRequest) returns (google.protobuf.Empty);
+    rpc showInputBox(ShowInputBoxRequest) returns (ShowInputBoxResponse);
+    rpc showOpenDialog(ShowOpenDialogRequest) returns (ShowOpenDialogResponse);
+    rpc showSaveDialog(ShowSaveDialogRequest) returns (ShowSaveDialogResponse);
+    rpc openFile(OpenFileRequest) returns (google.protobuf.Empty);
+    rpc getOpenTabs(google.protobuf.Empty) returns (GetTabsResponse);
+    rpc getVisibleTabs(google.protobuf.Empty) returns (GetTabsResponse);
+    rpc getActiveEditor(google.protobuf.Empty) returns (GetActiveEditorResponse);
+}

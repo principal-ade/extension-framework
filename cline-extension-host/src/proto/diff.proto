@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package host;
+
+import "google/protobuf/empty.proto";
+
+message DiffRequest {
+    string file_path_a = 1;
+    string file_path_b = 2;
+}
+
+message MultiFileDiffRequest {
+    repeated DiffRequest diffs = 1;
+}
+
+message GetDocumentTextRequest {
+    string file_path = 1;
+}
+
+message GetDocumentTextResponse {
+    string text = 1;
+}
+
+message ReplaceTextRequest {
+    string file_path = 1;
+    int32 start_line = 2;
+    int32 start_char = 3;
+    int32 end_line = 4;
+    int32 end_char = 5;
+    string new_text = 6;
+}
+
+message ScrollDiffRequest {
+    string file_path = 1;
+    int32 line = 2;
+}
+
+message TruncateDocumentRequest {
+    string file_path = 1;
+}
+
+message SaveDocumentRequest {
+    string file_path = 1;
+}
+
+service DiffService {
+    rpc openDiff(DiffRequest) returns (google.protobuf.Empty);
+    rpc openMultiFileDiff(MultiFileDiffRequest) returns (google.protobuf.Empty);
+    rpc getDocumentText(GetDocumentTextRequest) returns (GetDocumentTextResponse);
+    rpc replaceText(ReplaceTextRequest) returns (google.protobuf.Empty);
+    rpc scrollDiff(ScrollDiffRequest) returns (google.protobuf.Empty);
+    rpc truncateDocument(TruncateDocumentRequest) returns (google.protobuf.Empty);
+    rpc saveDocument(SaveDocumentRequest) returns (google.protobuf.Empty);
+    rpc closeAllDiffs(google.protobuf.Empty) returns (google.protobuf.Empty);
+}

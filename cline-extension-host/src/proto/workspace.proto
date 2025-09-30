@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package host;
+
+// Empty message for requests that don't need parameters.
+message Empty {}
+
+message GetWorkspacePathsResponse {
+    repeated string paths = 1;
+}
+
+message SaveOpenDocumentIfDirtyRequest {
+    string document_uri = 1;
+}
+
+message Diagnostic {
+    enum Severity {
+        UNKNOWN = 0;
+        HINT = 1;
+        INFORMATION = 2;
+        WARNING = 3;
+        ERROR = 4;
+    }
+    Severity severity = 1;
+    string message = 2;
+    string source = 3;
+    int32 line_start = 4;
+    int32 char_start = 5;
+    int32 line_end = 6;
+    int32 char_end = 7;
+}
+
+message GetDiagnosticsResponse {
+    repeated Diagnostic diagnostics = 1;
+}
+
+service WorkspaceService {
+    rpc getWorkspacePaths(Empty) returns (GetWorkspacePathsResponse);
+    rpc saveOpenDocumentIfDirty(SaveOpenDocumentIfDirtyRequest) returns (Empty);
+    rpc getDiagnostics(Empty) returns (GetDiagnosticsResponse);
+    rpc openProblemsPanel(Empty) returns (Empty);
+    rpc openTerminalPanel(Empty) returns (Empty);
+    rpc openClineSidebarPanel(Empty) returns (Empty);
+}
